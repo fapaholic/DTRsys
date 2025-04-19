@@ -1,0 +1,346 @@
+/* General Styling */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+body {
+  display: flex;
+  height: 100vh;
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  overflow-y: auto;
+  margin: 20px;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0f4f8; /* Soft Gray-Blue */
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 24px;
+  color: #2b6777; /* Deep Blue-Green */
+}
+
+header .profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+header .profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Employee Table */
+.employee-table {
+  background-color: #ffffff;
+  padding: 20px;
+  margin: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.employee-table h2 {
+  margin-bottom: 15px;
+  color: #2d5d7b;
+}
+.table{
+  display: flex;
+  margin: 20px;
+  gap: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+  background-color: #D9EAFD; /* Light blue */
+  color: #295F98;
+}
+
+/* tr:hover {
+  background-color: #f4f8fb; 
+} */
+
+
+/* Modal */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 40px; /* Space for the toggle button */
+}
+
+.password-field button {
+  right: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+
+
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: #999;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #555;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 10px;
+}
+
+input, select, .add-btn {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+#searchInput {
+  width: 400px;
+  height: 45px;
+}
+
+#positionFilter {
+  width: 180px;
+}
+
+/* Add Button */
+.add-btn {
+  background-color: #4caf50; /* Green */
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  height: 45px;
+  font-size: 15px;
+}
+
+.add-btn:hover {
+  background-color: #388e3c;
+}
+
+/* Status Button */
+.status-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.status-btn.active {
+  background-color: #4caf50; /* Green */
+}
+
+.status-btn.inactive {
+  background-color: #f44336; /* Red */
+}
+
+/* Edit Button */
+/* Edit Button */
+.edit-btn {
+  color: #2d5d7b;
+  padding: 6px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: transparent; /* Remove background */
+}
+
+.edit-btn i {
+  font-size: 20px;
+}
+
+.edit-btn:hover {
+  color: #3787b6;
+}
+
+/* Modal Form */
+#employeeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#employeeForm input,
+#employeeForm select,
+#employeeForm button {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+#employeeForm input,
+#employeeForm select {
+  background-color: #f9f9f9;
+  transition: border-color 0.2s;
+}
+
+#employeeForm input:focus,
+#employeeForm select:focus {
+  border-color: #2d5d7b;
+  outline: none;
+}
+
+#employeeForm button {
+  background-color: #4caf50;
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#employeeForm button:hover {
+  background-color: #388e3c;
+}
+
+#position, #schedule {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  font-size: 16px;
+  color: #333;
+  transition: border-color 0.2s;
+}
+
+#position:focus, #schedule:focus {
+  border-color: #2d5d7b;
+  outline: none;
+}
+
+/* QR Code */
+#qrcode {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#qrcode img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header h1 {
+      font-size: 20px;
+  }
+
+  header .profile img {
+      width: 32px;
+      height: 32px;
+  }
+
+  #searchInput {
+      width: 100%;
+  }
+
+  #positionFilter {
+      width: 100%;
+  }
+
+  .modal-content {
+      width: 90%;
+  }
+}
+
+
+  /* search */
+  .search-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  .search-container i {
+    position: absolute;
+    left: 10px; /* Position the icon on the left side inside the input field */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none; /* Ensures the icon doesn't interfere with typing */
+  }
+  
+  #searchInput {
+    width: 500px;
+    padding: 8px 10px 8px 30px; /* Add padding-left for the icon */
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  #searchInput:focus {
+    border-color: #2980b9;    
+    outline: none;             
+  }
+
+  select:focus {
+    border-color: #2980b9;
+    outline: none;
+  }
+  
+
+    
+  #dateFilter {
+    width: 250px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  #dateFilter:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+  }
