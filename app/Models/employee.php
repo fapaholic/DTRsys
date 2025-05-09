@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Employee extends Model
+class Employee extends Authenticatable
 {
+    use HasFactory, Notifiable;
+
     protected $fillable = [
         'email',
         'name',
@@ -15,7 +18,26 @@ class Employee extends Model
         'position',
         'password',
         'salary',
+        'contactno',
+        'type',
     ];
-    use HasFactory;
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Automatically hash password when setting it.
+     */
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = bcrypt($value);
+    }
+
+    // ✅ Relationship for attendance records
+    public function attendances()
+    {
+        return $this->hasMany(\App\Models\Attendance::class, 'employee_id');
+    }
 }

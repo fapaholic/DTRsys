@@ -1,64 +1,8 @@
-function generateQRCode(event) {
-    event.preventDefault();
-
-    // Get form values
-    const name = document.getElementById('name').value;
-    const age = document.getElementById('age').value;
-    const gender = document.getElementById('gender').value;
-    const position = document.getElementById('position').value;
-
-    // Combine the data into a string format
-    const qrData = `Name: ${name}\nAge: ${age}\nGender: ${gender}\nPosition: ${position}\n`;
-
-    // Clear previous QR code if exists
-    document.getElementById('qrcode').innerHTML = '';
-
-    // Generate the QR code
-    new QRCode(document.getElementById('qrcode'), {
-        text: qrData,
-        width: 128,
-        height: 128
-    });
-}
-
-function openAddModal() {
-    document.getElementById('modalTitle').innerText = "Add Employee";
-    document.getElementById('employeeModal').style.display = 'flex';
-    document.getElementById('employeeModal').style.justifyContent = 'center';
-    document.getElementById('employeeModal').style.display = 'flex';
-    
-
-    // Clear form fields
-    document.getElementById('employeeForm').reset();
-}
-
-
-function openScheduleModal() {
-    document.getElementById('modalTitle').innerText = "Add Schedule";
-    document.getElementById('ScheduleModal').style.display = 'flex';
-    document.getElementById('ScheduleModal').style.justifyContent = 'center';
-    document.getElementById('ScheduleModal').style.display = 'flex';
-    
-
-    // Clear form fields
-    document.getElementById('employeeForm').reset();
-}
-
-function closeEmployeeModal() {
-    document.getElementById('employeeModal').style.display = 'none';
-    
-}
-
-function closeScheduleModal() {
-    document.getElementById('ScheduleModal').style.display = 'none';
-    
-}
-
 async function saveEmployee(event) {
     event.preventDefault();
 
     // Get form values
-    const id = document.getElementById('employeeId').value; // Hidden field for ID (used for editing)
+    const id = document.getElementById('employeeId').value;
     const name = document.getElementById('name').value;
     const age = document.getElementById('age').value;
     const gender = document.getElementById('gender').value;
@@ -66,31 +10,29 @@ async function saveEmployee(event) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const salary = document.getElementById('salary').value;
+    const contactno = document.getElementById('contactno').value;
+    const type = document.getElementById('type').value;
 
     // Validate input fields
-    if (!name || !age || !gender || !position || !salary || (!email && !id) || (!password && !id)) {
+    if (!name || !age || !gender || !position || !salary || !contactno || !type || (!email && !id) || (!password && !id)) {
         alert('Please fill out all required fields.');
         return;
     }
 
-    // Determine if this is an Add or Edit operation
-    const isEdit = Boolean(id); // If `id` exists, it's an edit
-    const employeeData = { name, age, gender, position, salary };
+    const isEdit = Boolean(id);
+    const employeeData = { name, age, gender, position, salary, contactno, type };
 
-    // Add `email` and `password` only for new employees
     if (!isEdit) {
         employeeData.email = email;
         employeeData.password = password;
     }
 
-    // Construct URL and method
     const url = isEdit
-        ? `http://127.0.0.1:8000/employees/edit/${id}` // Replace with your actual edit endpoint
+        ? `http://127.0.0.1:8000/employees/edit/${id}`
         : 'http://127.0.0.1:8000/employees/add';
     const method = isEdit ? 'PATCH' : 'POST';
 
     try {
-        // Send the employee data to the backend
         const response = await fetch(url, {
             method,
             headers: {
@@ -103,35 +45,62 @@ async function saveEmployee(event) {
             throw new Error(`Failed to ${isEdit ? 'update' : 'add'} employee: ${response.statusText}`);
         }
 
-        // Parse the response
         const result = await response.json();
 
         if (result.success) {
             if (isEdit) {
-                // Update the row in the table for edits
                 const rows = document.querySelectorAll('#employeeBody tr');
                 rows.forEach(row => {
-                    if (row.cells[0].innerText === id) { // Assuming ID is in cell index 0
-                        row.cells[1].innerText = name; // Name
-                        row.cells[2].innerText = age; // Age
-                        row.cells[3].innerText = gender; // Gender
-                        row.cells[4].innerText = position; // Position
-                        row.cells[5].innerText = salary; // Salary
+                    if (row.cells[1].innerText === id) {
+                        row.cells[2].innerText = email;
+                        row.cells[3].innerText = name;
+                        row.cells[4].innerText = age;
+                        row.cells[5].innerText = gender;
+                        row.cells[6].innerText = contactno;
+                        row.cells[7].innerText = type;
+                        row.cells[8].innerText = position;
                     }
                 });
             } else {
-                // Add a new row for additions
                 const table = document.getElementById('employeeBody');
                 const newRow = table.insertRow();
-                newRow.insertCell(0).innerText = result.employee.id; // ID
-                newRow.insertCell(1).innerText = name; // Name
-                newRow.insertCell(2).innerText = age; // Age
-                newRow.insertCell(3).innerText = gender; // Gender
-                newRow.insertCell(4).innerText = position; // Position
-                newRow.insertCell(5).innerText = salary; // Salary
-                newRow.insertCell(6).innerHTML = `
-                    <button class="edit-btn" onclick="openEditModal('${result.employee.id}')">Edit</button>
-                `;
+
+                // QR Code Button
+                const qrCell = newRow.insertCell(0);
+                const qrButton = document.createElement('button');
+                qrButton.innerText = 'Show QR';
+                qrButton.className = 'add-btn';
+                qrButton.onclick = () => showQrModal(result.employee);
+                qrCell.appendChild(qrButton);
+
+                newRow.insertCell(1).innerText = result.employee.id;
+                newRow.insertCell(2).innerText = email;
+                newRow.insertCell(3).innerText = name;
+                newRow.insertCell(4).innerText = age;
+                newRow.insertCell(5).innerText = gender;
+                newRow.insertCell(6).innerText = contactno;
+                newRow.insertCell(7).innerText = type;
+                newRow.insertCell(8).innerText = position;
+
+                // Status Button
+                const statusCell = newRow.insertCell(9);
+                const statusBtn = document.createElement('button');
+                statusBtn.className = 'status-btn active';
+                statusBtn.innerText = 'Active';
+                statusBtn.onclick = function () {
+                    toggleStatus(statusBtn);
+                };
+                statusCell.appendChild(statusBtn);
+
+                // Edit Button
+                const editCell = newRow.insertCell(10);
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-btn';
+                editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+                editBtn.onclick = function () {
+                    openEditModal(result.employee.id);
+                };
+                editCell.appendChild(editBtn);
             }
 
             closeEmployeeModal();
@@ -145,164 +114,43 @@ async function saveEmployee(event) {
     }
 }
 
-
 function closeModal() {
     document.getElementById('scheduleModal').style.display = 'none';
 }
 
-// Filter Function
-function filterTable() {
-    const searchValue = document.getElementById('searchInput').value.toLowerCase();
-    const positionFilter = document.getElementById('positionFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    const rows = document.querySelectorAll('#employeeBody tr');
+let editingRow = null;
 
-    rows.forEach(row => {
-        const name = row.cells[0].innerText.toLowerCase();
-        const position = row.cells[3].innerText;
-        const status = row.cells[4].querySelector('button').innerText;
-
-        const matchesSearch = name.includes(searchValue) || searchValue === "";
-        const matchesPosition = position === positionFilter || positionFilter === "";
-        const matchesStatus = status === statusFilter || statusFilter === "";
-
-        if (matchesSearch && matchesPosition && matchesStatus) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
-    });
-}
-
-// Toggle Active/Inactive
-function toggleStatus(button) {
-    if (button.classList.contains('active')) {
-        button.classList.remove('active');
-        button.classList.add('inactive');
-        button.innerText = 'Inactive';
-    } else {
-        button.classList.remove('inactive');
-        button.classList.add('active');
-        button.innerText = 'Active';
-    }
-}
-
-// Open Modal for Adding Employee
 function openAddModal() {
     document.getElementById('modalTitle').innerText = "Add Employee";
     document.getElementById('employeeModal').style.display = 'flex';
-}
-
-function closeEmployeeModal() {
-    document.getElementById('employeeModal').style.display = 'none';
-    
-}
-
-// Open Modal for Editing Employee
-
-
-function generateQRCode(event) {
-    event.preventDefault();
-
-    // Get form values
-
-    const name = document.getElementById('name').value;
-    const age = document.getElementById('age').value;
-    const gender = document.getElementById('gender').value;
-    const position = document.getElementById('position').value;
-
-    // Create a new table row
-    const table = document.getElementById('employeeBody');
-    const newRow = table.insertRow();
-
-    // Insert table data cells
-
-    newRow.insertCell(1).textContent = id;
-    newRow.insertCell(2).textContent = name;
-    newRow.insertCell(3).textContent = age;
-    newRow.insertCell(4).textContent = gender;
-    newRow.insertCell(5).textContent = `0912345678`;
-    newRow.insertCell(6).textContent = `Regular`;
-    newRow.insertCell(7).textContent = position;
-
-    // Status cell
-    const statusCell = newRow.insertCell(8);
-    const statusBtn = document.createElement('button');
-    statusBtn.className = 'status-btn active';
-    statusBtn.textContent = 'Active';
-    statusBtn.onclick = function () {
-        toggleStatus(statusBtn);
-    };
-    statusCell.appendChild(statusBtn);
-
-    // QR Code cell
-    const qrCell = newRow.insertCell(0);
-    const qrDiv = document.createElement('div');
-    qrDiv.id = `qrcode-${name.replace(/\s+/g, '-')}`; // Unique ID for QR Code
-    qrCell.appendChild(qrDiv);
-
-    new QRCode(qrDiv, {
-        text: `ID: ${id}\nName: ${name}\nAge: ${age}\nGender: ${gender}\nPosition: ${position}\n`,
-        width: 80,
-        height: 80
-    });
-
-    // Edit button
-    const editCell = newRow.insertCell(7);
-    const editBtn = document.createElement('button');
-    editBtn.className = 'edit-btn';
-    editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-    editBtn.onclick = function () {
-        openEditModal(id);
-    };
-    editCell.appendChild(editBtn);
-
-    // Clear form after submission
     document.getElementById('employeeForm').reset();
-    closeEmployeeModal();
-}
 
-// Toggle status function
-function toggleStatus(button) {
-    if (button.classList.contains('active')) {
-        button.classList.remove('active');
-        button.classList.add('inactive');
-        button.textContent = 'Inactive';
-    } else {
-        button.classList.remove('inactive');
-        button.classList.add('active');
-        button.textContent = 'Active';
-    }
-}
+    const passwordField = document.getElementById('password');
+    const passwordContainer = document.getElementById('passwordContainer');
+    passwordContainer.style.display = 'block';
+    passwordField.required = true;
 
-
-// Close modal
-function closeEmployeeModal() {
-    document.getElementById('employeeModal').style.display = 'none';
-    
-}
-
-let editingRow = null; // Keep track of the row being edited
-
-// Open Modal for Adding Employee
-function openAddModal() {
-    document.getElementById('modalTitle').innerText = "Add Employee";
-    document.getElementById('employeeModal').style.display = 'flex';
-
-    // Clear form fields and reset editingRow
-    document.getElementById('employeeForm').reset();
     editingRow = null;
+
+    const passwordButton = document.getElementById('editPasswordButton');
+    passwordButton.style.display = 'none';    
 }
 
-// Open Modal for Editing Employee
+document.getElementById('editPasswordButton').addEventListener('click', () => {
+    const passwordField = document.getElementById('password');
+    const passwordContainer = document.getElementById('passwordContainer');
+    
+    // Show password field and make it required
+    passwordContainer.style.display = 'block';
+    passwordField.required = true;
+});
+
 async function openEditModal(id) {
+    const passwordButton = document.getElementById('editPasswordButton');
+    passwordButton.style.display = 'block';    
     document.getElementById('modalTitle').innerText = "Edit Employee";
     document.getElementById('employeeModal').style.display = 'flex';
-
-    
-
     try {
-        // Fetch employee data from the server
         const response = await fetch('http://127.0.0.1:8000/employees');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -310,86 +158,69 @@ async function openEditModal(id) {
 
         const employees = await response.json();
 
-        // Find the specific employee based on the ID
-        const employee = employees.find(emp => emp.name.toString() === id.toString());
-
+        const employee = employees.find(emp => emp.id.toString() === id.toString());
         if (employee) {
-            // Fill modal fields with existing data
-            document.getElementById('employeeId').value = employee.id; // Hidden field for ID
+            document.getElementById('employeeId').value = employee.id;
             document.getElementById('email').value = employee.email;
-            document.getElementById('name').value = employee.name; // Name
-            document.getElementById('age').value = employee.age; // Age
+            document.getElementById('name').value = employee.name;
+            document.getElementById('age').value = employee.age;
             document.getElementById('salary').value = employee.salary;
-            document.getElementById('gender').value = employee.gender; // Gender
-            document.getElementById('position').value = employee.position; // Position
+            document.getElementById('gender').value = employee.gender;
+            document.getElementById('position').value = employee.position;
+            document.getElementById('contactno').value = employee.contactno;
+            document.getElementById('type').value = employee.type;
+
+            // Hide password field and disable required by default
+            const passwordField = document.getElementById('password');
+            const passwordContainer = document.getElementById('passwordContainer');
+            passwordField.required = false;
+            passwordField.value = ''; // Clear any previous value
+            passwordContainer.style.display = 'none';
         } else {
-            console.error(`Employee with ID ${name} not found.`);
+            console.error(`Employee with ID ${id} not found.`);
         }
     } catch (error) {
         console.error('Error fetching employees:', error);
     }
 }
 
-
-// Close Modal
 function closeEmployeeModal() {
     document.getElementById('employeeModal').style.display = 'none';
     editingRow = null;
 }
 
-function togglePasswordVisibility() {
-    const passwordField = document.getElementById('password');
-    const toggleButton = document.getElementById('togglePassword');
-    const isPasswordVisible = passwordField.type === 'text';
-
-    // Toggle password visibility
-    passwordField.type = isPasswordVisible ? 'password' : 'text';
-
-    // Change the icon
-    toggleButton.innerHTML = isPasswordVisible
-        ? '<ion-icon name="eye-outline"></ion-icon>' // Eye icon
-        : '<ion-icon name="eye-off-outline"></ion-icon>'; // Eye-slash icon
-}
-
-
 async function generateQRCode(event) {
     event.preventDefault();
 
-    // Get form values
     const csrfToken = document.getElementById('csrf-token').value;
-    const id = document.getElementById('employeeId').value; // Hidden field for ID (used for editing)
+    const id = document.getElementById('employeeId').value;
     const name = document.getElementById('name').value;
     const age = document.getElementById('age').value;
     const gender = document.getElementById('gender').value;
     const position = document.getElementById('position').value;
+    const contactno = document.getElementById('contactno').value;
+    const type = document.getElementById('type').value;
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const salary = document.getElementById('salary').value;
 
-    // Validate input fields
-    if (!name || !age || !gender || !position || !email || (!password && !id) || !salary) {
+    if (!name || !age || !gender || !position || !email || (!password && !id) || !salary || !contactno || !type) {
         alert('Please fill out all required fields.');
         return;
     }
 
-    
-
-    // Prepare the employee data object
-    const employeeData = { name, age, gender, position, email, salary };
+    const employeeData = { name, age, gender, position, email, salary, contactno, type };
     if (!id) {
-        // Include password only when adding a new employee
         employeeData.password = password;
     }
 
-    // Determine whether this is an add (POST) or edit (PATCH) operation
     const isEdit = Boolean(id);
     const url = isEdit
-        ? `http://127.0.0.1:8000/employees/${id}` // Replace with your actual edit endpoint
+        ? `http://127.0.0.1:8000/employees/${id}`
         : 'http://127.0.0.1:8000/employees/add';
     const method = isEdit ? 'PATCH' : 'POST';
 
     try {
-        // Send the employee data to the backend
         const response = await fetch(url, {
             method,
             headers: {
@@ -406,68 +237,48 @@ async function generateQRCode(event) {
         const result = await response.json();
 
         if (result.success) {
-            if (isEdit) {
-                // Update the row in the table for edits
-                const rows = document.querySelectorAll('#employeeBody tr');
-                rows.forEach(row => {
-                    if (row.cells[1].innerText === id) { // Assuming ID is in cell index 1
-                        row.cells[2].innerText = name;
-                        row.cells[3].innerText = age;
-                        row.cells[4].innerText = gender;
-                        row.cells[5].innerText = position;
-                    }
-                });
-                alert('Employee updated successfully!');
-            } else {
-                // Add a new row for additions
+            if (!isEdit) {
                 const table = document.getElementById('employeeBody');
                 const newRow = table.insertRow();
 
-                // QR Code Cell
+                // QR Button
                 const qrCell = newRow.insertCell(0);
-                const qrDiv = document.createElement('div');
-                qrCell.appendChild(qrDiv);
-                new QRCode(qrDiv, {
-                    text: `Name: ${result.employee.name}\nAge: ${result.employee.age}\nGender: ${result.employee.gender}\nPosition: ${result.employee.position}`,
-                    width: 80,
-                    height: 80,
-                });
+                const qrButton = document.createElement('button');
+                qrButton.innerText = 'Show QR';
+                qrButton.className = 'add-btn';
+                qrButton.onclick = () => showQrModal(result.employee);
+                qrCell.appendChild(qrButton);
 
-                // Insert other cells
+                // Employee Info
                 newRow.insertCell(1).innerText = result.employee.id;
-                newRow.insertCell(2).innerText = result.employee.name;
-                newRow.insertCell(3).innerText = result.employee.age;
-                newRow.insertCell(4).innerText = result.employee.gender;
-                newRow.insertCell(5).textContent = `0912345678`;
-                newRow.insertCell(6).textContent = `Regular`;
-                newRow.insertCell(7).innerText = result.employee.position;
+                newRow.insertCell(2).innerText = email;
+                newRow.insertCell(3).innerText = name;
+                newRow.insertCell(4).innerText = age;
+                newRow.insertCell(5).innerText = gender;
+                newRow.insertCell(6).innerText = contactno;
+                newRow.insertCell(7).innerText = type;
+                newRow.insertCell(8).innerText = position;
 
-                // Status Button
-                const statusCell = newRow.insertCell(8);
+                // Status
+                const statusCell = newRow.insertCell(9);
                 const statusBtn = document.createElement('button');
                 statusBtn.className = 'status-btn active';
                 statusBtn.innerText = 'Active';
-                statusBtn.onclick = function () {
-                    toggleStatus(statusBtn);
-                };
+                statusBtn.onclick = () => toggleStatus(statusBtn);
                 statusCell.appendChild(statusBtn);
 
-                // Edit Button
-                const editCell = newRow.insertCell(9);
+                // Edit
+                const editCell = newRow.insertCell(10);
                 const editBtn = document.createElement('button');
                 editBtn.className = 'edit-btn';
                 editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-                editBtn.onclick = function () {
-                    openEditModal(result.employee.id);
-                };
+                editBtn.onclick = () => openEditModal(result.employee.id);
                 editCell.appendChild(editBtn);
-
-                alert('Employee added successfully!');
             }
 
-            // Clear form and close modal
             document.getElementById('employeeForm').reset();
             closeEmployeeModal();
+            alert(`Employee ${isEdit ? 'updated' : 'added'} successfully!`);
         } else {
             alert(`Failed to ${isEdit ? 'update' : 'add'} employee. Please try again.`);
         }
@@ -477,17 +288,33 @@ async function generateQRCode(event) {
     }
 }
 
-// Toggle Active/Inactive Status
-function toggleStatus(button) {
-    if (button.classList.contains('active')) {
-        button.classList.remove('active');
-        button.classList.add('inactive');
-        button.innerText = 'Inactive';
-    } else {
-        button.classList.remove('inactive');
-        button.classList.add('active');
-        button.innerText = 'Active';
-    }
+function showQrModal(employee) {
+    const modal = document.getElementById('qrModal');
+    const qrContainer = document.getElementById('qrCodeContainer');
+    qrContainer.innerHTML = '';
+
+    new QRCode(qrContainer, {
+        text: `ID: ${employee.id}\nName: ${employee.name}\nAge: ${employee.age}\nGender: ${employee.gender}\nPosition: ${employee.position}\nContact No: ${employee.contactno}\nType: ${employee.type}`,
+        width: 500,
+        height: 500,
+    });
+
+    modal.style.display = 'flex';
+
+    setTimeout(() => {
+        const img = qrContainer.querySelector('img');
+        document.getElementById('downloadQrBtn').onclick = () => {
+            const a = document.createElement('a');
+            a.href = img.src;
+            a.download = `EmployeeQR-${employee.name}.png`;
+            a.click();
+        };
+    }, 500);
+}
+
+function closeQrModal() {
+    document.getElementById('qrModal').style.display = 'none';
+    document.getElementById('qrCodeContainer').innerHTML = '';
 }
 
 async function loadEmployees() {
@@ -496,46 +323,58 @@ async function loadEmployees() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const employees = await response.json();
-        console.log(employees); // Log the data to verify
 
+        const employees = await response.json();
         const tableBody = document.getElementById('employeeBody');
         employees.forEach(employee => {
             const newRow = tableBody.insertRow();
+
+            // QR Button
             const qrCell = newRow.insertCell(0);
-            const qrDiv = document.createElement('div');
-            qrCell.appendChild(qrDiv);
+            const qrButton = document.createElement('button');
+            qrButton.innerText = 'Show QR';
+            qrButton.className = 'add-btn';
+            qrButton.onclick = () => showQrModal(employee);
+            qrCell.appendChild(qrButton);
+
             newRow.insertCell(1).textContent = employee.id;
-            newRow.insertCell(2).textContent = employee.name;
-            newRow.insertCell(3).textContent = employee.age;
-            newRow.insertCell(4).textContent = employee.gender;
-            newRow.insertCell(5).textContent = `0912345678`;
-            newRow.insertCell(6).textContent = `Regular`;
-            newRow.insertCell(7).textContent = employee.position;
-            const statusCell = newRow.insertCell(8);
+            newRow.insertCell(2).textContent = employee.email;
+            newRow.insertCell(3).textContent = employee.name;
+            newRow.insertCell(4).textContent = employee.age;
+            newRow.insertCell(5).textContent = employee.gender;
+            newRow.insertCell(6).textContent = employee.contactno;
+            newRow.insertCell(7).textContent = employee.type;
+            newRow.insertCell(8).textContent = employee.position;
+
+            // Status
+            const statusCell = newRow.insertCell(9);
             statusCell.innerHTML = `<button class="status-btn active">Active</button>`;
 
-
-
-            new QRCode(qrDiv, {
-                text: `ID: ${employee.id}\nName: ${employee.name}\nAge: ${employee.age}\nGender: ${employee.gender}\nPosition: ${employee.position}\n`,
-                width: 80,
-                height: 80
-            });
-
-
-
-            const editCell = newRow.insertCell(9);
+            // Edit
+            const editCell = newRow.insertCell(10);
             editCell.innerHTML = `
-                    <button class="edit-btn" onclick="openEditModal('${employee.name}')">
-                        <i class="fas fa-edit"></i>
-                    </button>`;
+                <button class="edit-btn" onclick="openEditModal('${employee.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>`;
         });
+
     } catch (error) {
         console.error('Error fetching employees:', error);
     }
 }
 
+function updateSalary() {
+    const employeeType = document.getElementById('type').value;
+    const salaryField = document.getElementById('salary');
 
-// Call loadEmployees when the page loads
+    if (employeeType === "Regular") {
+        salaryField.value = 86.31;
+    } else if (employeeType === "Part-timer") {
+        salaryField.value = 56.86;
+    } else {
+        salaryField.value = ""; // Clear the field if no type is selected
+    }
+}
+
 window.onload = loadEmployees;
+ 

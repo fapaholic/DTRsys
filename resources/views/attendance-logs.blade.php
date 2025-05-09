@@ -89,54 +89,54 @@
             </ul>
         </div>
 
-    <!-- ========================= Main ==================== -->
-    <div class="main">
+        <!-- ========================= Main ==================== -->
+        <div class="main">
             <div class="topbar">
                 <div class="toggle">
                     <ion-icon name="menu-outline"></ion-icon>
                 </div>
 
-            
+
                 <div class="name">
-                    <h4>{{auth()->user()->name}}</h4>
+                    <h4>{{ auth()->user()->name }}</h4>
                 </div>
-              
+
                 <div class="user">
                     <img src="{{ url('img/usericon.svg') }}" alt="">
                 </div>
             </div>
 
-        <div class="main-content">
-        <h2>April 1, 2025</h2>
+            <div class="main-content">
+            <h2>{{ now()->format('F j, Y') }}</h2>
 
 
 
                 <div class="filter-group">
 
-                <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search name" onkeyup="filterTable()" />
-          <i class="fas fa-search"></i>
-</div>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search name" onkeyup="filterTable()" />
+                        <i class="fas fa-search"></i>
+                    </div>
 
                     <input type="date" id="dateFilter" onchange="filterTable()" />
 
                     <select id="positionFilter" onchange="filterTable()">
 
-                    <option value="">All Positions</option>
-                                <option value="Barista">Barista</option>
-                                <option value="kitchen-staff">Kitchen Staff</option>
-                              
+                        <option value="">All Positions</option>
+                        <option value="Barista">Barista</option>
+                        <option value="kitchen-staff">Kitchen Staff</option>
+
                     </select>
 
                     <div class="filter-group">
-                    <select id="typeFilter" onchange="filterTable()">
+                        <select id="typeFilter" onchange="filterTable()">
                             <option value="">All Types</option>
                             <option value="regular">Regular</option>
                             <option value="part-timer">Part-Timer</option>
-                       
+
                         </select>
 
-</div>
+                    </div>
 
                     <div class="filter-group">
                         <select id="statusFilter" onchange="filterTable()">
@@ -150,155 +150,119 @@
 
             </div>
 
-         
-<!-- Employee Table -->
-<div class="employee-table">
-    <h2>Attendance Logs</h2>
-    <table id="employeeTable">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Type</th>
-                <th>Time In (AM)</th>
-                <th>Time Out (AM)</th>
-                <th>Time In (PM)</th>
-                <th>Time Out (PM)</th>
-                <th>Working Hours</th>
-                <th>Status</th>
-                <th>Salary</th>
-            </tr>
-        </thead>
 
-        <tbody>
-            <tr>
-                <td>03/21/2025</td>
-                <td>Sheina Labadan</td>
-                <td>Kitchen Staff</td>
-                <td>Regular</td>
-                <td>8:30</td>
-                <td></td>
-                <td></td>
-                <td>10:00</td>
-                <td>8 hours</td>
-                <td>On time</td>
-                <td>350</td>
-            </tr>
+            <!-- Employee Table -->
+            <div class="employee-table">
+                <h2>Attendance Logs</h2>
+                <table id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Type</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Working Hours</th>
+                            <th>Status</th>
+                            <th>Salary</th>
+                        </tr>
+                    </thead>
 
-            <tr>
-                <td>03/21/2025</td>
-                <td>Sheina Labadan</td>
-                <td>Barista</td>
-                <td>Regular</td>
-                <td>8:30</td>
-                <td></td>
-                <td></td>
-                <td>10:00</td>
-                <td>8 hours</td>
-                <td>On time</td>
-                <td>350</td>
-            </tr>
-            <tr>
-                <td>03/21/2025</td>
-                <td>Sheina Labadan</td>
-                <td>Barista</td>
-                <td>Regular</td>
-                <td>8:30</td>
-                <td></td>
-                <td></td>
-                <td>10:00</td>
-                <td>8 hours</td>
-                <td>On time</td>
-                <td>350</td>
-            </tr>
-            <tr>
-                <td>03/21/2025</td>
-                <td>Sheina Labadan</td>
-                <td>Barista</td>
-                <td>Regular</td>
-                <td>8:30</td>
-                <td></td>
-                <td></td>
-                <td>10:00</td>
-                <td>8 hours</td>
-                <td>Late</td>
-                <td>350</td>
-            </tr>
-        </tbody>
-    </table>
-    
-        <!-- Pagination Controls -->
-    <div class="pagination">
-            <button id="prevPage" onclick="changePage(-1)">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
-            <span id="pageNumber">Page 1</span>
-            <button id="nextPage" onclick="changePage(1)">
-                Next <i class="fas fa-arrow-right"></i>
-            </button>
+                    <tbody>
+                        @forelse ($logs as $log)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($log->date)->format('m/d/Y') }}</td>
+                                <td>{{ $log->name }}</td>
+                                <td>{{ $log->position ?? 'N/A' }}</td>
+                                <td>{{ ucfirst($log->type ?? 'N/A') }}</td>
+                                <td>{{ $log->time_in ? \Carbon\Carbon::parse($log->time_in)->format('h:i A') : '' }}</td>
+                                <td>{{ $log->time_out ? \Carbon\Carbon::parse($log->time_out)->format('h:i A') : '' }}</td>
+                                <td>
+                                    @if ($log->time_in && $log->time_out)
+                                        @php
+                                            $in = \Carbon\Carbon::parse($log->time_in);
+                                            $out = \Carbon\Carbon::parse($log->time_out);
+                                            $diffMinutes = $in->diffInMinutes($out);
+                                            $hours = floor($diffMinutes / 60);
+                                            $minutes = $diffMinutes % 60;
+                                        @endphp
+                                        {{ $hours > 0 ? $hours . 'h ' : '' }}{{ $minutes > 0 ? $minutes . 'm' : ($hours == 0 ? '0m' : '') }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>{{ $log->status ?? 'N/A' }}</td>
+                                <td>₱ {{ $log->salary ?? 'N/A' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9">No attendance records found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+                    <button id="prevPage" onclick="changePage(-1)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="pageNumber">Page 1</span>
+                    <button id="nextPage" onclick="changePage(1)">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+
+        <script src="{{ url('JS/sidebar.js') }}"></script>
 
 
+        <!-- Add Filter Function -->
+        <script>
+            function filterTable() {
+                const searchInput = document.getElementById("searchInput").value.toLowerCase();
+                const dateFilter = document.getElementById("dateFilter").value;
+                const positionFilter = document.getElementById("positionFilter").value.toLowerCase();
+                const typeFilter = document.getElementById("typeFilter").value.toLowerCase();
+                const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
 
+                const table = document.getElementById("employeeTable");
+                const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
 
+                let formattedDate = "";
+                if (dateFilter) {
+                    const dateObj = new Date(dateFilter);
+                    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+                    const day = String(dateObj.getDate()).padStart(2, "0");
+                    const year = dateObj.getFullYear();
+                    formattedDate = `${month}/${day}/${year}`;
+                }
 
+                for (let i = 0; i < rows.length; i++) {
+                    const cells = rows[i].getElementsByTagName("td");
 
-          
+                    const date = cells[0].textContent.toLowerCase();
+                    const name = cells[1].textContent.toLowerCase();
+                    const position = cells[2].textContent.toLowerCase();
+                    const type = cells[3].textContent.toLowerCase();
+                    const status = cells[9].textContent.toLowerCase();
 
+                    const matchesSearch = name.includes(searchInput);
+                    const matchesDate = !formattedDate || date.includes(formattedDate.toLowerCase());
+                    const matchesPosition = !positionFilter || position.includes(positionFilter);
+                    const matchesType = !typeFilter || type.includes(typeFilter);
+                    const matchesStatus = !statusFilter || status.includes(statusFilter);
 
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-            <script src="{{ url('JS/sidebar.js') }}"></script>
-            <script src="{{ url('JS/manemp.js') }}"></script>,
-
-
-
-            <!-- Add Filter Function -->
-            <script>
-    function filterTable() {
-        const searchInput = document.getElementById("searchInput").value.toLowerCase();
-        const dateFilter = document.getElementById("dateFilter").value;
-        const positionFilter = document.getElementById("positionFilter").value.toLowerCase();
-        const typeFilter = document.getElementById("typeFilter").value.toLowerCase();
-        const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
-
-        const table = document.getElementById("employeeTable");
-        const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-
-        let formattedDate = "";
-        if (dateFilter) {
-            const dateObj = new Date(dateFilter);
-            const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-            const day = String(dateObj.getDate()).padStart(2, "0");
-            const year = dateObj.getFullYear();
-            formattedDate = `${month}/${day}/${year}`;
-        }
-
-        for (let i = 0; i < rows.length; i++) {
-            const cells = rows[i].getElementsByTagName("td");
-
-            const date = cells[0].textContent.toLowerCase();
-            const name = cells[1].textContent.toLowerCase();
-            const position = cells[2].textContent.toLowerCase();
-            const type = cells[3].textContent.toLowerCase();
-            const status = cells[9].textContent.toLowerCase();
-
-            const matchesSearch = name.includes(searchInput);
-            const matchesDate = !formattedDate || date.includes(formattedDate.toLowerCase());
-            const matchesPosition = !positionFilter || position.includes(positionFilter);
-            const matchesType = !typeFilter || type.includes(typeFilter);
-            const matchesStatus = !statusFilter || status.includes(statusFilter);
-
-            if (matchesSearch && matchesDate && matchesPosition && matchesType && matchesStatus) {
-                rows[i].style.display = "";
-            } else {
-                rows[i].style.display = "none";
+                    if (matchesSearch && matchesDate && matchesPosition && matchesType && matchesStatus) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";x
+                    }
+                }
             }
-        }
-    }
-</script>
+        </script>
 
 
 </body>

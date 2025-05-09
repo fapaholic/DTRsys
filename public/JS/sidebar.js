@@ -45,7 +45,6 @@ toggle.onclick = function () {
 
 window.addEventListener("load", () => {
   const currentPath = window.location.pathname; // Get the current URL path
-  console.log(currentPath)
   list.forEach((item) => {
     const link = item.querySelector("a"); // Find the <a> inside the <li>
     if (link && link.getAttribute("href") === currentPath) {

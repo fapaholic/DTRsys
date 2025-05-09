@@ -20,6 +20,8 @@ return new class extends Migration
             $table->integer('age');
             $table->string('position');
             $table->decimal('salary');
+            $table->string('contactno')->nullable();
+            $table->string('type')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();

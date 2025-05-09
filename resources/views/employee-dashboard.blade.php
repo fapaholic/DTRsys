@@ -90,9 +90,9 @@
                     <ion-icon name="menu-outline"></ion-icon>
                 </div>
 
-            
+
                 <div class="name">
-                    <h4>{{auth()->user()->name}}</h4>
+                    <h4>{{ auth()->user()->name }}</h4>
                 </div>
                 <div class="qr">
                     <button>Scan QR</button>
@@ -102,12 +102,12 @@
                 </div>
             </div>
 
-    <!-- =========== Scripts =========  -->
-    <script src="{{ url('JS/sidebar.js') }}"></script>
+            <!-- =========== Scripts =========  -->
+            <script src="{{ url('JS/sidebar.js') }}"></script>
 
-    <!-- ====== ionicons ======= -->
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+            <!-- ====== ionicons ======= -->
+            <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+            <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 </body>
 
 </html>

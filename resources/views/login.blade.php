@@ -1,36 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coffee Login</title>
+
+    <!-- Link to your custom CSS -->
     <link rel="stylesheet" href="{{ url('CSS/login.css') }}">
+
+    <!-- CSRF Token for secure POST requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <style>
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-image: url("{{ asset('img/background.jpg') }}");
-    background-size: cover;
-    background-position: center;
-}
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-image: url("{{ asset('img/background.jpg') }}");
+        background-size: cover;
+        background-position: center;
+    }
 
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
 
+    .modal-content {
+        position: relative;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 700px;
+        text-align: center;
+    }
+
+    .modal-content h3 {
+        margin-bottom: 20px;
+    }
+
+    .modal-content .scanbtn {
+        margin: 10px;
+    }
+
+    #qr-reader {
+        margin-top: 20px;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #555;
+        cursor: pointer;
+        transition: color 0.2s ease-in-out;
+    }
+
+    .close-btn:hover {
+        color: #e74c3c;
+    }
 </style>
 
-<!-- Include the QR code library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" integrity="sha512-r6rDA7W6ZeQhvl8S7yRVQUKVHdexq+GAlNkNNqVC7YyIV+NwqCTJe2hDWCiffTyRNOeGEzRRJ9ifvRm/HCzGYg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
 <body>
-    
     <div class="container">
         <div class="left-panel">
-            <img src="https://qrtor.net/qrbg.png" alt="">
-            <!-- Button to trigger modal -->
-            <button class="scanbtn" onclick="openModal()">Scan Now</button>
+            <img src="https://qrtor.net/qrbg.png" alt="Company Logo">
+            <button class="scanbtn" onclick="openModeModal()">Scan Now</button>
         </div>
 
         <div class="right-panel">
@@ -38,83 +89,147 @@ body {
             <form action="{{ route('login.post') }}" method="POST">
                 @csrf
                 <label for="username">Username</label>
-                <input type="email" id="username" placeholder="Enter your username" name="email">
-                
+                <input type="email" id="username" name="email" placeholder="Enter your username">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" name="password">
-                
+                <input type="password" id="password" name="password" placeholder="Enter your password">
                 <button type="submit" class="signin-btn">Sign In</button>
-                <a href="#" class="forgot-password">Forgot Password?</a>
             </form>
         </div>
     </div>
 
-    <!-- QR Scanner Modal -->
-    <div id="qrModal">
-        <div id="qrModalContent">
-            <!-- Close Button with just "X" text -->
-            <span class="close-btn" onclick="closeModal()">X</span>
-            <!-- Left section for QR code result -->
-            <div id="qrResult">
-                <h3>Scanned QR Code:</h3>
-                <div id="result"></div>
-            </div>
-            <!-- Right section for QR code scanner -->
-            <div id="qr-reader"></div>
+    <!-- Modal 1 -->
+    <div id="modeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModeModal()">&times;</span>
+            <h3>Select Attendance Mode</h3>
+            <button class="scanbtn" onclick="chooseMode('in')">Time In</button>
+            <button class="scanbtn" onclick="chooseMode('out')">Time Out</button>
+        </div>
+    </div>
+
+    <!-- Modal 2 -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeQrModal()">&times;</span>
+            <h3 id="scanTitle">Scanning...</h3>
+            <div id="qr-reader" style="width: 100%"></div>
         </div>
     </div>
 
     <script>
-        // Open the QR Scanner modal
-        function openModal() {
+        let selectedMode = '';
+        let html5QrCode;
+
+        function openModeModal() {
+            document.getElementById('modeModal').style.display = 'flex';
+        }
+
+        function closeModeModal() {
+            document.getElementById('modeModal').style.display = 'none';
+        }
+
+        function chooseMode(mode) {
+            selectedMode = mode;
+            closeModeModal();
+            openQrModal();
+        }
+
+        function openQrModal() {
             document.getElementById('qrModal').style.display = 'flex';
+            document.getElementById('scanTitle').innerText =
+                selectedMode === 'in' ? 'Time In - Scan your QR Code' : 'Time Out - Scan your QR Code';
             startScanner();
         }
 
-        // Close the QR Scanner modal
-        function closeModal() {
+        function closeQrModal() {
+            stopScanner(); // Stops the QR scanner and the camera
             document.getElementById('qrModal').style.display = 'none';
-            stopScanner();  // Stop the scanner when the modal is closed
+            selectedMode = '';
         }
 
-        let html5QrCode;
-
         function startScanner() {
-            // Create a new QR code scanner
             html5QrCode = new Html5Qrcode("qr-reader");
 
-            // Start the scanner
-            html5QrCode.start(
-                { facingMode: "environment" },  // Use rear camera
-                {
-                    fps: 10,    // Frames per second
-                    qrbox: 250  // QR box size (optional)
+            html5QrCode.start({
+                    facingMode: "environment"
+                }, {
+                    fps: 10,
+                    qrbox: 450
                 },
-                // Success callback - when a QR code is scanned
                 (qrCodeMessage) => {
-                    console.log("QR Code Message:", qrCodeMessage);
-                    document.getElementById("result").innerText = "Scanned QR Code: " + qrCodeMessage;
+                    const scanText = qrCodeMessage.trim();
+                    html5QrCode.stop().then(() => {
+                        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        fetch('/attendance/record', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrf
+                                },
+                                body: JSON.stringify({
+                                    qr: scanText,
+                                    mode: selectedMode
+                                })
+                            })
+                            .then(async res => {
+                                const contentType = res.headers.get("content-type");
+                                if (contentType && contentType.includes("application/json")) {
+                                    const data = await res.json();
+                                    alert(data.success ? '✅ ' + data.message : '❌ ' + data.message);
+                                } else {
+                                    const html = await res.text();
+                                    console.error("Non-JSON response:\n", html);
+                                    alert("❌ Unexpected server response. Check console.");
+                                }
+                                closeQrModal(); // Hide scanner modal after scan
+                                openModeModal(); // Return to mode modal for next scan
+                            })
+                            .catch(err => {
+                                console.error("Fetch error:", err);
+                                alert("❌ Could not record attendance.");
+                                closeQrModal();
+                                openModeModal();
+                            });
+                    }).catch(console.error);
                 },
-                // Error callback - if any issue occurs
                 (errorMessage) => {
                     console.log("QR Error:", errorMessage);
                 }
             ).catch((err) => {
-                console.error("Failed to start the scanner", err);
+                console.error("Failed to start scanner:", err);
             });
         }
 
-        // Stop the scanner when modal is closed
         function stopScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then((result) => {
-                    console.log("Scanner stopped:", result);
-                }).catch((err) => {
-                    console.error("Error stopping scanner:", err);
+            if (html5QrCode && html5QrCode._isScanning) {
+                // Stop the QR code scanner
+                html5QrCode.stop().then(() => {
+                    // Clear the QR code scanner
+                    html5QrCode.clear();
+
+                    // Manually stop media tracks (cameras)
+                    if (html5QrCode._mediaStream) {
+                        let tracks = html5QrCode._mediaStream.getTracks();
+                        tracks.forEach(track => track.stop());
+                    }
+                }).catch((error) => {
+                    console.error("Error stopping QR scanner:", error);
                 });
             }
         }
     </script>
 
+    <script>
+    const isAuthorizedDevice = localStorage.getItem('deviceAuth') === 'WORKPLACE-ONLY';
+
+     window.addEventListener('DOMContentLoaded', () => {
+         const scanButton = document.querySelector('.left-panel .scanbtn');
+         if (scanButton && !isAuthorizedDevice) {
+             scanButton.style.display = 'none';
+         }
+     });
+</script>
+
 </body>
+
 </html>
